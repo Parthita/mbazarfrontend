@@ -11,14 +11,15 @@ export default function SalesAnalytics() {
   const { filters, theme } = useDashboard();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [chartData, setChartData] = useState<{
+    monthly_trend: Array<{ period: string; sales: number; profit: number }>;
+    supplier_rankings: Array<{ supplier: string; sales: number }>;
+  } | null>(null);
 
   const trendRef = useRef<HTMLDivElement | null>(null);
   const rankingRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    let trendChart: echarts.ECharts | null = null;
-    let rankingChart: echarts.ECharts | null = null;
-
     async function loadChartData() {
       setLoading(true);
       setError(false);
@@ -37,132 +38,137 @@ export default function SalesAnalytics() {
         const res = await fetch(buildApiUrl(`/api/v1/analytics/sales-charts?${queryParams.toString()}`));
         if (!res.ok) throw new Error("Failed to fetch chart data");
         const data = await res.json();
-
-        const chartTheme = getChartTheme(theme);
-
-        // 1. Render Trend Area Chart
-        if (trendRef.current) {
-          trendChart = echarts.init(trendRef.current);
-          const periods = data.monthly_trend.map((r: any) => r.period);
-          const sales = data.monthly_trend.map((r: any) => r.sales);
-          const profits = data.monthly_trend.map((r: any) => r.profit);
-
-          trendChart.setOption({
-            backgroundColor: "transparent",
-            tooltip: {
-              trigger: "axis",
-              ...chartTheme.tooltip,
-            },
-            legend: {
-              data: ["Sales", "Profit"],
-              textStyle: chartTheme.textStyle,
-            },
-            grid: { left: "4%", right: "4%", bottom: "3%", containLabel: true },
-            xAxis: {
-              type: "category",
-              data: periods,
-              axisLine: chartTheme.axisLine,
-              axisLabel: chartTheme.textStyle,
-            },
-            yAxis: {
-              type: "value",
-              splitLine: chartTheme.splitLine,
-              axisLabel: chartTheme.textStyle,
-            },
-            series: [
-              {
-                name: "Sales",
-                type: "line",
-                data: sales,
-                smooth: true,
-                areaStyle: {
-                  color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    { offset: 0, color: "rgba(223, 28, 36, 0.4)" }, // Brand red glow
-                    { offset: 1, color: "rgba(223, 28, 36, 0.0)" },
-                  ]),
-                },
-                itemStyle: { color: CHART_COLORS.red },
-              },
-              {
-                name: "Profit",
-                type: "line",
-                data: profits,
-                smooth: true,
-                areaStyle: {
-                  color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    { offset: 0, color: "rgba(37, 99, 235, 0.3)" }, // Blue glow
-                    { offset: 1, color: "rgba(37, 99, 235, 0.0)" },
-                  ]),
-                },
-                itemStyle: { color: CHART_COLORS.blue },
-              },
-            ],
-          });
-        }
-
-        // 2. Render Supplier Ranking Bar Chart
-        if (rankingRef.current) {
-          rankingChart = echarts.init(rankingRef.current);
-          const suppliers = data.supplier_rankings.map((r: any) => r.supplier).reverse();
-          const sales = data.supplier_rankings.map((r: any) => r.sales).reverse();
-
-          rankingChart.setOption({
-            backgroundColor: "transparent",
-            tooltip: {
-              trigger: "axis",
-              axisPointer: { type: "shadow" },
-              ...chartTheme.tooltip,
-            },
-            grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
-            xAxis: {
-              type: "value",
-              splitLine: chartTheme.splitLine,
-              axisLabel: chartTheme.textStyle,
-            },
-            yAxis: {
-              type: "category",
-              data: suppliers,
-              axisLine: chartTheme.axisLine,
-              axisLabel: { ...chartTheme.textStyle, fontSize: 9 },
-            },
-            series: [
-              {
-                name: "Sales Volume",
-                type: "bar",
-                data: sales,
-                itemStyle: {
-                  color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                    { offset: 0, color: CHART_COLORS.purple },
-                    { offset: 1, color: CHART_COLORS.red }, // MBazars red gradient
-                  ]),
-                  borderRadius: [0, 4, 4, 0],
-                },
-              },
-            ],
-          });
-        }
+        setChartData({
+          monthly_trend: Array.isArray(data.monthly_trend) ? data.monthly_trend : [],
+          supplier_rankings: Array.isArray(data.supplier_rankings) ? data.supplier_rankings : [],
+        });
       } catch (err) {
         console.error("Failed to render sales analytics charts", err);
         setError(true);
+        setChartData(null);
       } finally {
         setLoading(false);
       }
     }
 
     loadChartData();
+  }, [filters]);
+
+  useEffect(() => {
+    if (loading || error || !chartData || !trendRef.current || !rankingRef.current) {
+      return;
+    }
+
+    const chartTheme = getChartTheme(theme);
+    const trendChart = echarts.init(trendRef.current);
+    const rankingChart = echarts.init(rankingRef.current);
+
+    const periods = chartData.monthly_trend.map((r) => r.period);
+    const salesTrend = chartData.monthly_trend.map((r) => r.sales);
+    const profits = chartData.monthly_trend.map((r) => r.profit);
+    const suppliers = chartData.supplier_rankings.map((r) => r.supplier).reverse();
+    const supplierSales = chartData.supplier_rankings.map((r) => r.sales).reverse();
+
+    trendChart.setOption({
+      backgroundColor: "transparent",
+      tooltip: {
+        trigger: "axis",
+        ...chartTheme.tooltip,
+      },
+      legend: {
+        data: ["Sales", "Profit"],
+        textStyle: chartTheme.textStyle,
+      },
+      grid: { left: "4%", right: "4%", bottom: "3%", containLabel: true },
+      xAxis: {
+        type: "category",
+        data: periods,
+        axisLine: chartTheme.axisLine,
+        axisLabel: chartTheme.textStyle,
+      },
+      yAxis: {
+        type: "value",
+        splitLine: chartTheme.splitLine,
+        axisLabel: chartTheme.textStyle,
+      },
+      series: [
+        {
+          name: "Sales",
+          type: "line",
+          data: salesTrend,
+          smooth: true,
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: "rgba(223, 28, 36, 0.4)" },
+              { offset: 1, color: "rgba(223, 28, 36, 0.0)" },
+            ]),
+          },
+          itemStyle: { color: CHART_COLORS.red },
+        },
+        {
+          name: "Profit",
+          type: "line",
+          data: profits,
+          smooth: true,
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: "rgba(37, 99, 235, 0.3)" },
+              { offset: 1, color: "rgba(37, 99, 235, 0.0)" },
+            ]),
+          },
+          itemStyle: { color: CHART_COLORS.blue },
+        },
+      ],
+    });
+
+    rankingChart.setOption({
+      backgroundColor: "transparent",
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+        ...chartTheme.tooltip,
+      },
+      grid: { left: "3%", right: "4%", bottom: "3%", containLabel: true },
+      xAxis: {
+        type: "value",
+        splitLine: chartTheme.splitLine,
+        axisLabel: chartTheme.textStyle,
+      },
+      yAxis: {
+        type: "category",
+        data: suppliers,
+        axisLine: chartTheme.axisLine,
+        axisLabel: { ...chartTheme.textStyle, fontSize: 9 },
+      },
+      series: [
+        {
+          name: "Sales Volume",
+          type: "bar",
+          data: supplierSales,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+              { offset: 0, color: CHART_COLORS.purple },
+              { offset: 1, color: CHART_COLORS.red },
+            ]),
+            borderRadius: [0, 4, 4, 0],
+          },
+        },
+      ],
+    });
 
     const handleResize = () => {
-      trendChart?.resize();
-      rankingChart?.resize();
+      trendChart.resize();
+      rankingChart.resize();
     };
+
     window.addEventListener("resize", handleResize);
 
     return () => {
-      trendChart?.dispose();
-      rankingChart?.dispose();
+      trendChart.dispose();
+      rankingChart.dispose();
       window.removeEventListener("resize", handleResize);
     };
-  }, [filters, theme]);
+  }, [chartData, error, loading, theme]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
