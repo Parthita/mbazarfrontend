@@ -21,8 +21,10 @@ export default function Home() {
       {/* Page Title */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">{activeTab}</h1>
-          <p className="text-xs text-[#A1A1AA]">MB OLAP Retail Business Intelligence Dashboard Workspace</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{activeTab}</h1>
+          <p className="text-xs text-muted-foreground">
+            MB OLAP Retail Business Intelligence Dashboard Workspace
+          </p>
         </div>
       </div>
 
@@ -54,8 +56,8 @@ export default function Home() {
       {/* Fallback for other tabs */}
       {!["Dashboard", "Sales Analytics", "Products", "Suppliers", "Categories", "Departments", "Forecasting", "AI Assistant", "Settings"].includes(activeTab) && (
         <div className="glass-card p-12 flex flex-col items-center justify-center text-center">
-          <h3 className="text-lg font-bold text-white mb-2">{activeTab} Panel</h3>
-          <p className="text-xs text-[#A1A1AA] max-w-sm">
+          <h3 className="text-lg font-bold text-foreground mb-2">{activeTab} Panel</h3>
+          <p className="text-xs text-muted-foreground max-w-sm">
             This module is structured and ready for analytical queries. Configure filters in the top workspace panel to adjust metrics.
           </p>
         </div>
