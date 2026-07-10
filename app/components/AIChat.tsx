@@ -73,7 +73,7 @@ function makeWelcomeMessage(): Message {
   return {
     id: uid(),
     sender: "bot",
-    text: "Welcome! I'm your **AI Inventory Analyst** powered by Qwen 3.6 27B on Groq.\n\nAsk me anything about sales, supplier performance, product margins, stock velocity, or inventory health — and I'll compile a full executive report.",
+    text: "Welcome! I'm your **AI Inventory Analyst** powered by GPT-OSS 120B on Groq.\n\nAsk me anything about sales, supplier performance, product margins, stock velocity, or inventory health — and I'll compile a full executive report.",
     ts: Date.now(),
   };
 }
@@ -678,9 +678,9 @@ export default function AIChat() {
             </div>
             <div>
               <h3 className="text-xs font-bold text-foreground flex items-center gap-2">
-                Qwen OLAP Analyst
+                GPT-OSS 120B OLAP Analyst
                 <span className="text-[9px] bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full text-primary font-medium">
-                  qwen/qwen3.6-27b
+                  openai/gpt-oss-120b
                 </span>
               </h3>
               <p className="text-[10px] text-muted-foreground font-medium">
@@ -799,7 +799,7 @@ export default function AIChat() {
             </button>
           </div>
           <p className="text-[10px] text-muted-foreground text-center mt-2">
-            Read-only queries only · Powered by Qwen 3.6 27B on Groq · DuckDB OLAP
+            Read-only queries only · Powered by GPT-OSS 120B on Groq · DuckDB OLAP
           </p>
         </div>
       </div>

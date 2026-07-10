@@ -70,7 +70,7 @@ export default function Settings() {
           <div className="flex items-center gap-3 bg-secondary/40 border border-border rounded-xl p-3">
             <Bot className="h-4 w-4 text-primary shrink-0" />
             <div>
-              <p className="text-xs font-semibold text-foreground">Qwen 3.6 27B</p>
+              <p className="text-xs font-semibold text-foreground">GPT-OSS 120B</p>
               <p className="text-[10px] text-emerald-500 font-semibold">● Active</p>
             </div>
           </div>
